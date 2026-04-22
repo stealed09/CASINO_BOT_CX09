@@ -35,7 +35,6 @@ class Database:
                     last_monthly TEXT DEFAULT NULL
                 )
             """)
-
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS transactions (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -46,7 +45,6 @@ class Database:
                     date TEXT NOT NULL
                 )
             """)
-
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS withdrawals (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,7 +55,6 @@ class Database:
                     date TEXT NOT NULL
                 )
             """)
-
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS deposits (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -69,14 +66,12 @@ class Database:
                     date TEXT NOT NULL
                 )
             """)
-
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS settings (
                     key TEXT PRIMARY KEY,
                     value TEXT NOT NULL
                 )
             """)
-
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS balance_locks (
                     user_id INTEGER PRIMARY KEY,
@@ -89,16 +84,14 @@ class Database:
                 ("withdraw_enabled", "1"),
                 ("weekly_bonus", "50"),
                 ("monthly_bonus", "200"),
-                ("bonus_mode", "wagered"),   # 'wagered' or 'fixed'
+                ("bonus_mode", "fixed"),
                 ("upi_id", "notset@upi"),
-                ("upi_qr", ""),              # file_id of QR image
+                ("upi_qr", ""),
                 ("star_payment_id", ""),
+                ("bot_username_tag", ""),   # admin sets this e.g. @CasinoBot
             ]
             for key, value in defaults:
-                await db.execute(
-                    "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)",
-                    (key, value)
-                )
+                await db.execute("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)", (key, value))
 
             await db.commit()
         logger.info("Database initialized.")
@@ -132,10 +125,7 @@ class Database:
         try:
             async with self._lock:
                 async with aiosqlite.connect(self.db_path) as db:
-                    await db.execute(
-                        "UPDATE users SET balance = balance + ? WHERE user_id = ?",
-                        (amount, user_id)
-                    )
+                    await db.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (amount, user_id))
                     await db.commit()
             return True
         except Exception as e:
@@ -146,10 +136,7 @@ class Database:
         try:
             async with self._lock:
                 async with aiosqlite.connect(self.db_path) as db:
-                    await db.execute(
-                        "UPDATE users SET balance = ? WHERE user_id = ?",
-                        (amount, user_id)
-                    )
+                    await db.execute("UPDATE users SET balance = ? WHERE user_id = ?", (amount, user_id))
                     await db.commit()
             return True
         except Exception as e:
@@ -158,18 +145,12 @@ class Database:
 
     async def update_wagered(self, user_id: int, amount: float):
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute(
-                "UPDATE users SET total_wagered = total_wagered + ? WHERE user_id = ?",
-                (amount, user_id)
-            )
+            await db.execute("UPDATE users SET total_wagered = total_wagered + ? WHERE user_id = ?", (amount, user_id))
             await db.commit()
 
     async def update_username(self, user_id: int, username: str):
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute(
-                "UPDATE users SET username = ? WHERE user_id = ?",
-                (username or "", user_id)
-            )
+            await db.execute("UPDATE users SET username = ? WHERE user_id = ?", (username or "", user_id))
             await db.commit()
 
     async def add_transaction(self, user_id: int, type_: str, amount: float, status: str = "completed"):
@@ -183,10 +164,7 @@ class Database:
     async def get_transactions(self, user_id: int, limit: int = 10) -> List[Dict]:
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
-            async with db.execute(
-                "SELECT * FROM transactions WHERE user_id = ? ORDER BY date DESC LIMIT ?",
-                (user_id, limit)
-            ) as cur:
+            async with db.execute("SELECT * FROM transactions WHERE user_id = ? ORDER BY date DESC LIMIT ?", (user_id, limit)) as cur:
                 return [dict(r) for r in await cur.fetchall()]
 
     async def create_withdrawal(self, user_id: int, amount: float, upi_id: str) -> int:
@@ -267,10 +245,7 @@ class Database:
         try:
             async with self._lock:
                 async with aiosqlite.connect(self.db_path) as db:
-                    await db.execute(
-                        "INSERT OR REPLACE INTO balance_locks (user_id, locked_amount) VALUES (?, ?)",
-                        (user_id, amount)
-                    )
+                    await db.execute("INSERT OR REPLACE INTO balance_locks (user_id, locked_amount) VALUES (?, ?)", (user_id, amount))
                     await db.commit()
             return True
         except Exception as e:
@@ -309,10 +284,7 @@ class Database:
 
     async def set_warn(self, user_id: int, warned: int, warn_time: Optional[str]):
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute(
-                "UPDATE users SET bonus_warned=?, warn_time=? WHERE user_id=?",
-                (warned, warn_time, user_id)
-            )
+            await db.execute("UPDATE users SET bonus_warned=?, warn_time=? WHERE user_id=?", (warned, warn_time, user_id))
             await db.commit()
 
     async def reset_bonus_progress(self, user_id: int):
@@ -326,10 +298,7 @@ class Database:
     async def update_last_bonus(self, user_id: int, bonus_type: str):
         col = "last_weekly" if bonus_type == "weekly" else "last_monthly"
         async with aiosqlite.connect(self.db_path) as db:
-            await db.execute(
-                f"UPDATE users SET {col}=? WHERE user_id=?",
-                (datetime.now().isoformat(), user_id)
-            )
+            await db.execute(f"UPDATE users SET {col}=? WHERE user_id=?", (datetime.now().isoformat(), user_id))
             await db.commit()
 
 

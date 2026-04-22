@@ -33,9 +33,7 @@ def games_menu_kb() -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="🎯 Darts", callback_data="game_darts"),
         InlineKeyboardButton(text="🚀 Limbo", callback_data="game_limbo")
     )
-    builder.row(
-        InlineKeyboardButton(text="🪙 Coin Flip", callback_data="game_coinflip")
-    )
+    builder.row(InlineKeyboardButton(text="🪙 Coin Flip", callback_data="game_coinflip"))
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="menu_main"))
     return builder.as_markup()
 
@@ -57,7 +55,7 @@ def deposit_menu_kb() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
         InlineKeyboardButton(text="⭐ Telegram Stars", callback_data="deposit_stars"),
-        InlineKeyboardButton(text="🏦 UPI", callback_data="deposit_upi")
+        InlineKeyboardButton(text="🏦 UPI / QR", callback_data="deposit_upi")
     )
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="menu_wallet"))
     return builder.as_markup()
@@ -91,16 +89,38 @@ def coinflip_choice_kb(amount: str) -> InlineKeyboardMarkup:
 def admin_panel_kb() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
-        InlineKeyboardButton(text="💳 Pending Deposits", callback_data="admin_deposits"),
-        InlineKeyboardButton(text="💸 Pending Withdrawals", callback_data="admin_withdrawals")
+        InlineKeyboardButton(text="💳 Deposits", callback_data="admin_deposits"),
+        InlineKeyboardButton(text="💸 Withdrawals", callback_data="admin_withdrawals")
     )
     builder.row(
         InlineKeyboardButton(text="📢 Broadcast", callback_data="admin_broadcast"),
-        InlineKeyboardButton(text="⚙️ Settings", callback_data="admin_settings")
-    )
-    builder.row(
         InlineKeyboardButton(text="📊 Stats", callback_data="admin_stats")
     )
+    builder.row(
+        InlineKeyboardButton(text="⚙️ Settings", callback_data="admin_settings")
+    )
+    return builder.as_markup()
+
+
+def admin_settings_kb() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(text="💸 Min Withdrawal", callback_data="aset_minwd"),
+        InlineKeyboardButton(text="🔄 Toggle Withdraw", callback_data="aset_wdtoggle")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🎁 Weekly Bonus", callback_data="aset_weekly"),
+        InlineKeyboardButton(text="📅 Monthly Bonus", callback_data="aset_monthly")
+    )
+    builder.row(
+        InlineKeyboardButton(text="🎰 Bonus Mode", callback_data="aset_bonusmode"),
+        InlineKeyboardButton(text="🏦 Set UPI ID", callback_data="aset_upi")
+    )
+    builder.row(
+        InlineKeyboardButton(text="📸 Set UPI QR", callback_data="aset_qr"),
+        InlineKeyboardButton(text="⭐ Star Pay ID", callback_data="aset_star")
+    )
+    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="admin_panel"))
     return builder.as_markup()
 
 
@@ -122,21 +142,18 @@ def approve_reject_withdraw_kb(wid: int) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def withdraw_toggle_kb(enabled: bool) -> InlineKeyboardMarkup:
+def paid_confirm_kb(did: int) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    status = "🟢 ON" if enabled else "🔴 OFF"
-    toggle_val = "off" if enabled else "on"
-    builder.row(
-        InlineKeyboardButton(text=f"Toggle ({status})", callback_data=f"admin_wdtoggle_{toggle_val}")
-    )
-    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="admin_settings"))
+    builder.row(InlineKeyboardButton(text="✅ I Have Paid", callback_data=f"deposit_confirm_{did}"))
+    builder.row(InlineKeyboardButton(text="❌ Cancel", callback_data="menu_wallet"))
     return builder.as_markup()
 
 
-def paid_confirm_kb(did: int) -> InlineKeyboardMarkup:
+def bonus_claim_kb(has_weekly: bool, has_monthly: bool) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.row(
-        InlineKeyboardButton(text="✅ I Have Paid", callback_data=f"deposit_confirm_{did}")
-    )
-    builder.row(InlineKeyboardButton(text="❌ Cancel", callback_data="menu_wallet"))
+    if has_weekly:
+        builder.row(InlineKeyboardButton(text="🗓️ Claim Weekly Bonus", callback_data="bonus_claim_weekly"))
+    if has_monthly:
+        builder.row(InlineKeyboardButton(text="📅 Claim Monthly Bonus", callback_data="bonus_claim_monthly"))
+    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="menu_main"))
     return builder.as_markup()

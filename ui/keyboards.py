@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
-def main_menu_kb() -> InlineKeyboardMarkup:
+def main_menu_kb(is_admin: bool = False) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
         InlineKeyboardButton(text="🎮 Play Games", callback_data="menu_games"),
@@ -16,6 +16,8 @@ def main_menu_kb() -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="🆘 Support", callback_data="menu_support"),
         InlineKeyboardButton(text="📊 History", callback_data="menu_history")
     )
+    if is_admin:
+        builder.row(InlineKeyboardButton(text="🔐 Admin Panel", callback_data="admin_panel"))
     return builder.as_markup()
 
 
@@ -96,9 +98,8 @@ def admin_panel_kb() -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="📢 Broadcast", callback_data="admin_broadcast"),
         InlineKeyboardButton(text="📊 Stats", callback_data="admin_stats")
     )
-    builder.row(
-        InlineKeyboardButton(text="⚙️ Settings", callback_data="admin_settings")
-    )
+    builder.row(InlineKeyboardButton(text="⚙️ Settings", callback_data="admin_settings"))
+    builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="menu_main"))
     return builder.as_markup()
 
 
@@ -114,12 +115,13 @@ def admin_settings_kb() -> InlineKeyboardMarkup:
     )
     builder.row(
         InlineKeyboardButton(text="🎰 Bonus Mode", callback_data="aset_bonusmode"),
-        InlineKeyboardButton(text="🏦 Set UPI ID", callback_data="aset_upi")
+        InlineKeyboardButton(text="🏷️ Bot Tag", callback_data="aset_bottag")
     )
     builder.row(
-        InlineKeyboardButton(text="📸 Set UPI QR", callback_data="aset_qr"),
-        InlineKeyboardButton(text="⭐ Star Pay ID", callback_data="aset_star")
+        InlineKeyboardButton(text="🏦 Set UPI ID", callback_data="aset_upi"),
+        InlineKeyboardButton(text="📸 Set UPI QR", callback_data="aset_qr")
     )
+    builder.row(InlineKeyboardButton(text="⭐ Star Pay ID", callback_data="aset_star"))
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="admin_panel"))
     return builder.as_markup()
 
@@ -149,11 +151,11 @@ def paid_confirm_kb(did: int) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def bonus_claim_kb(has_weekly: bool, has_monthly: bool) -> InlineKeyboardMarkup:
+def bonus_claim_kb(can_weekly: bool, can_monthly: bool) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    if has_weekly:
+    if can_weekly:
         builder.row(InlineKeyboardButton(text="🗓️ Claim Weekly Bonus", callback_data="bonus_claim_weekly"))
-    if has_monthly:
+    if can_monthly:
         builder.row(InlineKeyboardButton(text="📅 Claim Monthly Bonus", callback_data="bonus_claim_monthly"))
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="menu_main"))
     return builder.as_markup()

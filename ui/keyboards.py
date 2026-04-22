@@ -118,10 +118,17 @@ def admin_settings_kb() -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="🏷️ Bot Tag", callback_data="aset_bottag")
     )
     builder.row(
-        InlineKeyboardButton(text="🏦 Set UPI ID", callback_data="aset_upi"),
-        InlineKeyboardButton(text="📸 Set UPI QR", callback_data="aset_qr")
+        InlineKeyboardButton(text="🏦 UPI ID", callback_data="aset_upi"),
+        InlineKeyboardButton(text="📸 UPI QR", callback_data="aset_qr")
     )
-    builder.row(InlineKeyboardButton(text="⭐ Star Pay ID", callback_data="aset_star"))
+    builder.row(
+        InlineKeyboardButton(text="⭐ Star Pay ID", callback_data="aset_star"),
+        InlineKeyboardButton(text="🤝 Referral %", callback_data="aset_referral")
+    )
+    builder.row(
+        InlineKeyboardButton(text="📥 Deposit Tax %", callback_data="aset_deptax"),
+        InlineKeyboardButton(text="📤 Withdraw Tax %", callback_data="aset_wdtax")
+    )
     builder.row(InlineKeyboardButton(text="🔙 Back", callback_data="admin_panel"))
     return builder.as_markup()
 
@@ -144,9 +151,9 @@ def approve_reject_withdraw_kb(wid: int) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def paid_confirm_kb(did: int) -> InlineKeyboardMarkup:
+def upi_paid_done_kb(did: int) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.row(InlineKeyboardButton(text="✅ I Have Paid", callback_data=f"deposit_confirm_{did}"))
+    builder.row(InlineKeyboardButton(text="✅ Payment Done", callback_data=f"upi_done_{did}"))
     builder.row(InlineKeyboardButton(text="❌ Cancel", callback_data="menu_wallet"))
     return builder.as_markup()
 

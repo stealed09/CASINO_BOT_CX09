@@ -642,4 +642,112 @@ async def cb_dep_reject(callback: CallbackQuery):
         await callback.answer("Admin only!", show_alert=True)
         return
     did = int(callback.data.split("_")[-1])
-    await reject_deposit(callback, bot, did
+    await reject_deposit(callback, bot, did)
+
+
+# Admin withdrawal approve/reject
+@dp.callback_query(F.data.startswith("wd_approve_"))
+async def cb_wd_approve(callback: CallbackQuery):
+    if callback.from_user.id not in ADMIN_IDS:
+        await callback.answer("Admin only!", show_alert=True)
+        return
+    wid = int(callback.data.split("_")[-1])
+    await approve_withdrawal(callback, bot, wid)
+
+
+@dp.callback_query(F.data.startswith("wd_reject_"))
+async def cb_wd_reject(callback: CallbackQuery):
+    if callback.from_user.id not in ADMIN_IDS:
+        await callback.answer("Admin only!", show_alert=True)
+        return
+    wid = int(callback.data.split("_")[-1])
+    await reject_withdrawal(callback, bot, wid)
+
+
+# Admin panel callbacks
+@dp.callback_query(F.data == "admin_panel")
+async def cb_admin_panel(callback: CallbackQuery):
+    if callback.from_user.id not in ADMIN_IDS:
+        await callback.answer("Admin only!", show_alert=True)
+        return
+    total_users = len(await db.get_all_users())
+    await callback.message.edit_text(
+        f"🔐 *ADMIN PANEL*\n{SEP}\n👥 Total Users: *{total_users}*\n{SEP}",
+        parse_mode="Markdown",
+        reply_markup=admin_panel_kb()
+    )
+    await callback.answer()
+
+
+@dp.callback_query(F.data == "admin_deposits")
+async def cb_admin_deposits(callback: CallbackQuery):
+    if callback.from_user.id not in ADMIN_IDS:
+        await callback.answer("Admin only!", show_alert=True)
+        return
+    await show_pending_deposits(callback)
+
+
+@dp.callback_query(F.data == "admin_withdrawals")
+async def cb_admin_withdrawals(callback: CallbackQuery):
+    if callback.from_user.id not in ADMIN_IDS:
+        await callback.answer("Admin only!", show_alert=True)
+        return
+    await show_pending_withdrawals(callback)
+
+
+@dp.callback_query(F.data == "admin_stats")
+async def cb_admin_stats(callback: CallbackQuery):
+    if callback.from_user.id not in ADMIN_IDS:
+        await callback.answer("Admin only!", show_alert=True)
+        return
+    await show_admin_stats(callback)
+
+
+@dp.callback_query(F.data == "admin_settings")
+async def cb_admin_settings(callback: CallbackQuery):
+    if callback.from_user.id not in ADMIN_IDS:
+        await callback.answer("Admin only!", show_alert=True)
+        return
+    await show_admin_settings(callback)
+
+
+@dp.callback_query(F.data == "admin_broadcast")
+async def cb_admin_broadcast(callback: CallbackQuery):
+    if callback.from_user.id not in ADMIN_IDS:
+        await callback.answer("Admin only!", show_alert=True)
+        return
+    await callback.message.edit_text(
+        f"📢 *BROADCAST*\n{SEP}\nUse command:\n`/broadcast your message here`",
+        parse_mode="Markdown",
+        reply_markup=back_kb("admin_panel")
+    )
+    await callback.answer()
+
+
+# Coin flip callback
+@dp.callback_query(F.data.startswith("cf_"))
+async def cb_coinflip(callback: CallbackQuery):
+    parts = callback.data.split("_")
+    choice = parts[1]
+    amount = float(parts[2])
+    await play_coinflip(callback, bot, amount, choice)
+    await callback.answer()
+
+
+# ─── STARTUP ──────────────────────────────────────────────────────────────────
+
+async def main():
+    await db.init()
+    logger.info("🎰 Casino Bot starting...")
+
+    # Clean up any stale balance locks from previous session
+    async with __import__('aiosqlite').connect(__import__('config').DB_PATH) as _db:
+        await _db.execute("DELETE FROM balance_locks")
+        await _db.commit()
+    logger.info("Cleared stale balance locks.")
+
+    await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
